@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 295
-  Height = 630
+  Height = 673
   Top = 176
-  Width = 649
+  Width = 1010
   Caption = 'Form1'
   DesignTimePPI = 120
   OnCreate = FormCreate

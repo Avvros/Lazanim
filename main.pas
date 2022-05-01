@@ -5,7 +5,7 @@ unit main;
 interface
 
 uses
-    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls;
+    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls;
 
 type
 
@@ -27,64 +27,62 @@ type
 
     TDayTime = (dtDay, dtNight);
 
-    //TTimeColors = record
-    //    Atmo, Celestial: TColor;
-    //end;
-
-    TCircularBody = record
+    TCelestial = record
         x, y, r: integer;
+        color: TColor;
     end;
 
 var
     Form1: TForm1;
 
 implementation
-uses drawing;
+uses drawing, calc;
 
 var
-    sun_x, sun_y, sun_y0, px, py, alpha: integer;
-    //tcTime: TTimeColors;
+    sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
+    alpha, speed: double;
     clAtmo: TColor;
 const
     deg = PI / 180;
     Rc = 20;
-    sun_x0 = Rc;
-    //tcDay: TTimeColors = (Atmo: clWhite; Celestial: clYellow);
-    //tcNight: TTimeColors = (Atmo: clBlack; Celestial: TColor($ccccff));
     clSun = clYellow;
-    clMoon = TColor($ccccff);
+    clMoon = TColor($dbdbff);
 
 {$R *.lfm}
 
 { TForm1 }
 
-procedure SetTime(dt: TDayTime);
+procedure DrawAtmosphere();
 begin
-    if (dt = dtDay) then
-        clAtmo := clWhite
-    else
-        clAtmo := clBlack;
+
+end;
+
+procedure DrawBackground();
+begin
+
+end;
+
+procedure SetTime(time: double);
+begin
+    clAtmo := LerpColor(clBlack, clWhite, time);
 end;
 
 procedure TForm1.InvalidateMeasures();
 var
-    R, dy2: Double;
-    dx: integer;
+    R: integer;
 begin
     py := Height;
     px := Width div 2;
     R := Height - Rc;
-    dx := sun_x0 - px;
-    dy2 := R * R - dx * dx;
-    if dy2 < 0 then
-        dy2 := 0;
-    sun_y0 := Trunc(Height - sqrt(dy2));
+    sun_x0 := px - R;
+    sun_y0 := Height;
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+    speed := 0.5;
     InvalidateMeasures();
-    SetTime(dtDay);
+    SetTime(1);
     alpha := 0;
     sun_x := sun_x0;
     sun_y := sun_y0;
@@ -98,12 +96,10 @@ begin
     Canvas.Clear;
     Canvas.Brush.Color := clSun;
     DrawCircle(Canvas, sun_x, sun_y, Rc);
-    //Canvas.Ellipse(sun_x - Rc, sun_y - Rc, sun_x + Rc, sun_y + Rc);
     moon_x := Width - sun_x;
     moon_y := 2 * Height - sun_y;
     Canvas.Brush.Color := clMoon;
     DrawCircle(Canvas, moon_x, moon_y, Rc);
-    //Canvas.Line(sun_x, sun_y, px, py);
 end;
 
 procedure TForm1.FormResize(Sender: TObject);
@@ -114,25 +110,20 @@ end;
 procedure TForm1.Timer1Timer(Sender: TObject);
 var
     vx, vy: integer;
-    nvx, nvy, ralpha: Double;
+    nvx, nvy, ralpha, sina, cosa: Double;
 begin
-    alpha := alpha + 1;
-    //Label1.Caption := IntToStr(alpha);
+    alpha := alpha + 1 * speed;
     vx := sun_x - px;
     vy := sun_y - py;
     ralpha := deg * alpha;
-    nvx := vx * cos(ralpha) - vy * sin(ralpha);
-    nvy := vx * sin(ralpha) + vy * cos(ralpha);
+    sina := sin(ralpha);
+    cosa := cos(ralpha);
+    nvx := vx * cosa - vy * sina;
+    nvy := vx * sina + vy * cosa;
     sun_x := Trunc(nvx) + px;
     sun_y := Trunc(nvy) + py;
-    if (alpha mod 180) = 0 then
-        if alpha mod 360 = 0 then
-        begin
-            SetTime(dtDay);
-            alpha := 0;
-        end
-        else
-            SetTime(dtNight);
+    if (alpha > 360) then alpha := alpha - 360;
+    SetTime((sina + 1) / 2);
     DrawPic();
     sun_x := sun_x0;
     sun_y := sun_y0;
