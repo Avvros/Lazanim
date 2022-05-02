@@ -16,6 +16,7 @@ type
         procedure FormCreate(Sender: TObject);
         procedure FormPaint(Sender: TObject);
         procedure DrawPic();
+        procedure DrawAtmosphere();
         procedure FormResize(Sender: TObject);
         procedure Timer1Timer(Sender: TObject);
         procedure InvalidateMeasures();
@@ -25,36 +26,40 @@ type
 
     end;
 
-    TDayTime = (dtDay, dtNight);
-
-    TCelestial = record
-        x, y, r: integer;
-        color: TColor;
-    end;
-
 var
     Form1: TForm1;
 
 implementation
 uses drawing, calc;
 
-var
-    sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
-    alpha, speed: double;
-    clAtmo: TColor;
 const
     deg = PI / 180;
     Rc = 20;
     clSun = clYellow;
     clMoon = TColor($dbdbff);
+    starsCount = 50;
+
+type
+    TArr = array[0..starsCount - 1] of TPoint;
+
+var
+    sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
+    alpha, speed: double;
+    clAtmo: TColor;
+    Stars: TArr;
 
 {$R *.lfm}
 
 { TForm1 }
 
-procedure DrawAtmosphere();
+procedure TForm1.DrawAtmosphere();
+var
+    i: integer;
 begin
-
+    for i := 0 to starsCount - 1 do
+    begin
+        Canvas.Pixels[Stars[i].X, Stars[i].Y] := clWhite;
+    end;
 end;
 
 procedure DrawBackground();
@@ -79,6 +84,8 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+    bx, by, i: integer;
 begin
     speed := 0.5;
     InvalidateMeasures();
@@ -86,6 +93,13 @@ begin
     alpha := 0;
     sun_x := sun_x0;
     sun_y := sun_y0;
+    Randomize;
+    for i := 0 to starsCount - 1 do
+    begin
+        bx := random(Width);
+        by := random(Height);
+        Stars[i] := TPoint.Create(bx, by);
+    end;
 end;
 
 procedure TForm1.DrawPic();
@@ -100,6 +114,7 @@ begin
     moon_y := 2 * Height - sun_y;
     Canvas.Brush.Color := clMoon;
     DrawCircle(Canvas, moon_x, moon_y, Rc);
+    DrawAtmosphere();
 end;
 
 procedure TForm1.FormResize(Sender: TObject);
@@ -113,6 +128,7 @@ var
     nvx, nvy, ralpha, sina, cosa: Double;
 begin
     alpha := alpha + 1 * speed;
+    if (alpha > 360) then alpha := alpha - 360;
     vx := sun_x - px;
     vy := sun_y - py;
     ralpha := deg * alpha;
@@ -122,7 +138,6 @@ begin
     nvy := vx * sina + vy * cosa;
     sun_x := Trunc(nvx) + px;
     sun_y := Trunc(nvy) + py;
-    if (alpha > 360) then alpha := alpha - 360;
     SetTime((sina + 1) / 2);
     DrawPic();
     sun_x := sun_x0;
