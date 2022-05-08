@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Александр Жариков
 unit calc;
 
 {$mode objfpc}{$H+}

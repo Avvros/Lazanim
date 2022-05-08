@@ -1,3 +1,4 @@
+// Copyright (c) 2022 Александр Жариков
 unit drawing;
 
 {$mode objfpc}{$H+}
