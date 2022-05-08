@@ -10,6 +10,7 @@ uses
 
 const
     Epsilon = 0.001;
+    Deg = PI / 180;
 
     function Lerp(a, b: integer; alpha: double): integer;
     function LerpColor(a, b: TColor; alpha: double): TColor;

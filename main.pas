@@ -34,35 +34,13 @@ var
     MainForm: TMainForm;
 
 implementation
-uses drawing, calc;
-
-const
-    deg = PI / 180;
-    Rc = 20;
-    clSun = clYellow;
-    clMoon = TColor($dbdbff);
-    starsCount = 50;
-    mtCount = 4;
-    maxHeight = 300;
-    mtRatios : array [0..mtCount + 1] of array [0..1] of double = (
-        (0, 0.75),
-        (0.15, 1),
-        (0.35, 0.5),
-        (0.55, 0.9),
-        (0.75, 0.6),
-        (1, 0.8)
-    );
-
-type
-    TStarsArr = array [0..starsCount - 1] of TPoint;
-    TMountainsArr = array [0..mtCount + 1] of TPoint;
+uses drawing, calc, scene;
 
 var
     sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
     alpha, speed: double;
     clAtmo: TColor;
-    Stars: TStarsArr;
-    Mountains: TMountainsArr;
+    Stars, Mountains: TPointArr;
 
 {$R *.lfm}
 
@@ -80,10 +58,10 @@ end;
 
 procedure TMainForm.DrawBackground();
 begin
-    Canvas.Pen.Color := clGray;
+    Canvas.Pen.Color := clFarMt;
     Canvas.Polyline(Mountains);
-    Canvas.Brush.Color := clGray;
-    Canvas.FloodFill(10, Height - 10, clGray, fsBorder);
+    Canvas.Brush.Color := clFarMt;
+    Canvas.FloodFill(10, Height - 10, clFarMt, fsBorder);
 end;
 
 procedure SetTime(time: double);
@@ -107,6 +85,7 @@ procedure TMainForm.GenerateStars();
 var
     bx, by, i: integer;
 begin
+    SetLength(Stars, starsCount);
     for i := 0 to starsCount - 1 do
     begin
         bx := random(Width);
@@ -119,15 +98,15 @@ procedure TMainForm.ResizeMountains();
 var
     bx, by, i: integer;
 begin
-    for i := 0 to mtCount + 1 do
+    for i := 0 to FarMtCount + 1 do
     begin
         if i = 0 then
             bx := -1 // Чтобы убрать левую вершину за границу экрана
-        else if i = mtCount + 1 then
+        else if i = FarMtCount + 1 then
             bx := Width + 1 // Чтобы убрать правую вершину за границу экрана
         else
-            bx := Trunc(mtRatios[i, 0] * Width);
-        by := Trunc(Height - mtRatios[i, 1] * maxHeight);
+            bx := Trunc(FarMtRatios[i, 0] * Width);
+        by := Trunc(Height - FarMtRatios[i, 1] * maxMtHeight);
         Mountains[i] := TPoint.Create(bx, by);
     end;
 end;
@@ -137,6 +116,7 @@ begin
     Randomize;
     GenerateStars();
     speed := 0.5;
+    Setlength(Mountains, FarMtCount + 2);
     InvalidateMeasures();
     SetTime(1);
     alpha := 0;
@@ -174,7 +154,7 @@ begin
     if (alpha > 360) then alpha := alpha - 360;
     vx := sun_x - px;
     vy := sun_y - py;
-    ralpha := deg * alpha;
+    ralpha := Deg * alpha;
     sina := sin(ralpha);
     cosa := cos(ralpha);
     nvx := vx * cosa - vy * sina;
