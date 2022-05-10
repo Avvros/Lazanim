@@ -6,18 +6,14 @@ unit scene;
 interface
 
 uses
-    Classes, SysUtils, Graphics;
-
-type
-    TPointArr = array of TPoint;
-    TPointRatio = array [0..1] of double;
-    //TPRatioArr = array of TPointRatio;
+    Classes, SysUtils, Graphics, drawing;
 
 const
     Rc = 20;
     clSun = clYellow;
     clMoon = TColor($dbdbff);
     clFarMt = clLtGray;
+    clNearMt = clGray;
     starsCount = 50;
     FarMtCount = 4;
     maxMtHeight = 300;
@@ -33,12 +29,12 @@ const
 
     LMtPointsCount = 4;
     LMtRatios : array [0..LMtPointsCount + 1] of TPointRatio = (
-        (0, 0.75),
+        (0, 0.8),
         (0.20, 0.9),
-        (0.25, 0.85),
-        (0.3, 0.7),
-        (0.35, 0.4),
-        (0.38, 0)
+        (0.23, 0.85),
+        (0.26, 0.7),
+        (0.29, 0.4),
+        (0.30, 0)
     );
 
 implementation

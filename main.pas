@@ -19,8 +19,10 @@ type
         procedure DrawPic();
         procedure DrawAtmosphere();
         procedure DrawBackground();
+        procedure DrawForeground();
         procedure GenerateStars();
-        procedure ResizeMountains();
+        procedure RecalcFarMountains();
+        procedure RecalcNearMountains();
         procedure FormResize(Sender: TObject);
         procedure Timer1Timer(Sender: TObject);
         procedure InvalidateMeasures();
@@ -40,7 +42,8 @@ var
     sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
     alpha, speed: double;
     clAtmo: TColor;
-    Stars, Mountains: TPointArr;
+    FarMountains, LeftMountain, RightMountain: TPointArr;
+    Stars: TPRatioArr;
 
 {$R *.lfm}
 
@@ -50,18 +53,37 @@ procedure TMainForm.DrawAtmosphere();
 var
     i: integer;
 begin
+    Canvas.Brush.Color := clAtmo;
+    Canvas.Clear;
     for i := 0 to starsCount - 1 do
     begin
-        Canvas.Pixels[Stars[i].X, Stars[i].Y] := clWhite;
+        Canvas.Pixels[Trunc(Stars[i, 0] * Width), Trunc(Stars[i, 1] * Height)] := clWhite;
     end;
 end;
 
 procedure TMainForm.DrawBackground();
+var
+    ffs: TPoint; // FloodFill start
 begin
-    Canvas.Pen.Color := clFarMt;
-    Canvas.Polyline(Mountains);
-    Canvas.Brush.Color := clFarMt;
-    Canvas.FloodFill(10, Height - 10, clFarMt, fsBorder);
+    ffs := TPoint.Create(10, Height - 10);
+    DrawSolidPolylineObject(Canvas, FarMountains, clFarMt, ffs);
+end;
+
+procedure TMainForm.DrawForeground();
+var
+    ffs: TPoint; // FloodFill start
+    moon_x, moon_y: integer;
+begin
+    Canvas.Brush.Color := clSun;
+    DrawCircle(Canvas, sun_x, sun_y, Rc);
+    moon_x := Width - sun_x;
+    moon_y := 2 * Height - sun_y;
+    Canvas.Brush.Color := clMoon;
+    DrawCircle(Canvas, moon_x, moon_y, Rc);
+    ffs := TPoint.Create(10, Height - 10);
+    DrawSolidPolylineObject(Canvas, LeftMountain, clNearMt, ffs);
+    ffs := TPoint.Create(Width - 10, Height - 10);
+    DrawSolidPolylineObject(Canvas, RightMountain, clNearMt, ffs);
 end;
 
 procedure SetTime(time: double);
@@ -78,23 +100,23 @@ begin
     R := Height - Rc;
     sun_x0 := px - R;
     sun_y0 := Height;
-    ResizeMountains();
+    RecalcFarMountains();
+    RecalcNearMountains();
 end;
 
 procedure TMainForm.GenerateStars();
 var
-    bx, by, i: integer;
+    i: integer;
 begin
     SetLength(Stars, starsCount);
     for i := 0 to starsCount - 1 do
     begin
-        bx := random(Width);
-        by := random(Height);
-        Stars[i] := TPoint.Create(bx, by);
+        Stars[i, 0] := random;
+        Stars[i, 1] := random;
     end;
 end;
 
-procedure TMainForm.ResizeMountains();
+procedure TMainForm.RecalcFarMountains();
 var
     bx, by, i: integer;
 begin
@@ -107,7 +129,28 @@ begin
         else
             bx := Trunc(FarMtRatios[i, 0] * Width);
         by := Trunc(Height - FarMtRatios[i, 1] * maxMtHeight);
-        Mountains[i] := TPoint.Create(bx, by);
+        FarMountains[i] := TPoint.Create(bx, by);
+    end;
+end;
+
+procedure TMainForm.RecalcNearMountains();
+var
+    bx, by, i: integer;
+begin
+    for i := 0 to LMtPointsCount + 1 do
+    begin
+        if i = LMtPointsCount + 1 then
+        begin
+            by := Height + 1; // Чтобы убрать правую вершину за границу экрана
+        end
+        else
+            by := Trunc(Height - LMtRatios[i, 1] * maxMtHeight);
+        if i = 0 then
+            bx := -1 // Чтобы убрать левую вершину за границу экрана
+        else
+            bx := Trunc(LMtRatios[i, 0] * Width);
+        LeftMountain[i] := TPoint.Create(bx, by);
+        RightMountain[i] := TPoint.Create(Width - bx, by);
     end;
 end;
 
@@ -116,7 +159,9 @@ begin
     Randomize;
     GenerateStars();
     speed := 0.5;
-    Setlength(Mountains, FarMtCount + 2);
+    Setlength(FarMountains, FarMtCount + 2);
+    Setlength(LeftMountain, LMtPointsCount + 2);
+    Setlength(RightMountain, LMtPointsCount + 2);
     InvalidateMeasures();
     SetTime(1);
     alpha := 0;
@@ -125,19 +170,10 @@ begin
 end;
 
 procedure TMainForm.DrawPic();
-var
-    moon_x, moon_y: integer;
 begin
-    Canvas.Brush.Color := clAtmo;
-    Canvas.Clear;
-    Canvas.Brush.Color := clSun;
-    DrawCircle(Canvas, sun_x, sun_y, Rc);
-    moon_x := Width - sun_x;
-    moon_y := 2 * Height - sun_y;
-    Canvas.Brush.Color := clMoon;
-    DrawCircle(Canvas, moon_x, moon_y, Rc);
     DrawAtmosphere();
     DrawBackground();
+    DrawForeground();
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);
