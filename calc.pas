@@ -12,6 +12,9 @@ const
     Epsilon = 0.001;
     Deg = PI / 180;
 
+type
+    TVector2D = TPoint;
+
     function Lerp(a, b: integer; alpha: double): integer;
     function LerpColor(a, b: TColor; alpha: double): TColor;
     function InterpRatio(a, b, v: double): double;

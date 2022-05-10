@@ -20,9 +20,10 @@ type
         procedure DrawAtmosphere();
         procedure DrawBackground();
         procedure DrawForeground();
+        procedure DrawCloud();
         procedure GenerateStars();
-        procedure RecalcFarMountains();
-        procedure RecalcNearMountains();
+        procedure CalcFarMountains();
+        procedure CalcNearMountains();
         procedure FormResize(Sender: TObject);
         procedure Timer1Timer(Sender: TObject);
         procedure InvalidateMeasures();
@@ -86,6 +87,11 @@ begin
     DrawSolidPolylineObject(Canvas, RightMountain, clNearMt, ffs);
 end;
 
+procedure TMainForm.DrawCloud();
+begin
+
+end;
+
 procedure SetTime(time: double);
 begin
     clAtmo := LerpColor(clBlack, clWhite, time);
@@ -100,8 +106,8 @@ begin
     R := Height - Rc;
     sun_x0 := px - R;
     sun_y0 := Height;
-    RecalcFarMountains();
-    RecalcNearMountains();
+    CalcFarMountains();
+    CalcNearMountains();
 end;
 
 procedure TMainForm.GenerateStars();
@@ -116,7 +122,7 @@ begin
     end;
 end;
 
-procedure TMainForm.RecalcFarMountains();
+procedure TMainForm.CalcFarMountains();
 var
     bx, by, i: integer;
 begin
@@ -133,7 +139,7 @@ begin
     end;
 end;
 
-procedure TMainForm.RecalcNearMountains();
+procedure TMainForm.CalcNearMountains();
 var
     bx, by, i: integer;
 begin

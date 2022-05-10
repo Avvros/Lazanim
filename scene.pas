@@ -2,11 +2,12 @@
 unit scene;
 
 {$mode objfpc}{$H+}
+{$modeSwitch advancedRecords}
 
 interface
 
 uses
-    Classes, SysUtils, Graphics, drawing;
+    Classes, SysUtils, Graphics, drawing, calc;
 
 const
     Rc = 20;
@@ -37,7 +38,29 @@ const
         (0.30, 0)
     );
 
+type
+
+
+    { TCloud }
+
+    TCloud = record
+        x, y: integer;
+        nForward: TVector2D;
+        Points: TPointArr;
+    public
+        procedure Move();
+    end;
+
+
+
 implementation
+
+{ TCloud }
+
+procedure TCloud.Move();
+begin
+
+end;
 
 end.
 
