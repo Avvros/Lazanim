@@ -6,13 +6,15 @@ unit main;
 interface
 
 uses
-    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls;
+    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ActnList;
 
 type
 
     { TMainForm }
 
     TMainForm = class(TForm)
+        Stop: TAction;
+        ActionList1: TActionList;
         Timer1: TTimer;
         procedure FormCreate(Sender: TObject);
         procedure FormPaint(Sender: TObject);
@@ -25,6 +27,7 @@ type
         procedure CalcFarMountains();
         procedure CalcNearMountains();
         procedure FormResize(Sender: TObject);
+        procedure StopExecute(Sender: TObject);
         procedure Timer1Timer(Sender: TObject);
         procedure InvalidateMeasures();
     private
@@ -45,6 +48,7 @@ var
     clAtmo: TColor;
     FarMountains, LeftMountain, RightMountain: TPointArr;
     Stars: TPRatioArr;
+    ExCloud: TCloud;
 
 {$R *.lfm}
 
@@ -70,10 +74,29 @@ begin
     DrawSolidPolylineObject(Canvas, FarMountains, clFarMt, ffs);
 end;
 
-procedure TMainForm.DrawForeground();
+function CalcCloud(cloud: TCloud): TPointArr;
 var
-    ffs: TPoint; // FloodFill start
-    moon_x, moon_y: integer;
+    APoints: TPointArr;
+    i, len: integer;
+begin
+    with cloud do
+    begin
+        len := Length(Points);
+        SetLength(APoints, len);
+        for i := 0 to len - 1 do
+        begin
+            APoints[i] := TPoint.Create(x + Points[i].x, y + Points[i].y);
+        end;
+    end;
+    Result := APoints;
+end;
+
+procedure TMainForm.DrawForeground();
+const
+    clLtLtGray = TColor($E0E0E0);
+var
+    ffs, buf: TPoint; // FloodFill start
+    moon_x, moon_y, i: integer;
 begin
     Canvas.Brush.Color := clSun;
     DrawCircle(Canvas, sun_x, sun_y, Rc);
@@ -85,6 +108,14 @@ begin
     DrawSolidPolylineObject(Canvas, LeftMountain, clNearMt, ffs);
     ffs := TPoint.Create(Width - 10, Height - 10);
     DrawSolidPolylineObject(Canvas, RightMountain, clNearMt, ffs);
+    //Canvas.PolyBezier(ExCloud.Points, true, true);
+    Canvas.Brush.Color := clLtLtGray;
+    Canvas.Pen.Color := clLtLtGray;
+    for i := 0 to Length(ExCloud.Points) do
+    begin
+        buf := ExCloud.Points[i];
+        DrawCircle(Canvas, buf.X, buf.Y, CloudSize);
+    end;
 end;
 
 procedure TMainForm.DrawCloud();
@@ -173,6 +204,7 @@ begin
     alpha := 0;
     sun_x := sun_x0;
     sun_y := sun_y0;
+    ExCloud := GenerateCloud(Width, Height);
 end;
 
 procedure TMainForm.DrawPic();
@@ -185,6 +217,11 @@ end;
 procedure TMainForm.FormResize(Sender: TObject);
 begin
     InvalidateMeasures();
+end;
+
+procedure TMainForm.StopExecute(Sender: TObject);
+begin
+    Timer1.Enabled := not Timer1.Enabled;
 end;
 
 procedure TMainForm.Timer1Timer(Sender: TObject);

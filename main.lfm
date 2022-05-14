@@ -1,6 +1,6 @@
 object MainForm: TMainForm
   Left = 497
-  Height = 673
+  Height = 672
   Top = 235
   Width = 1010
   Caption = 'Анимация'
@@ -547,5 +547,14 @@ object MainForm: TMainForm
     OnTimer = Timer1Timer
     Left = 16
     Top = 24
+  end
+  object ActionList1: TActionList
+    Left = 16
+    Top = 616
+    object Stop: TAction
+      Caption = 'Stop'
+      OnExecute = StopExecute
+      ShortCut = 19
+    end
   end
 end
