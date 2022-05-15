@@ -1,9 +1,11 @@
 object MainForm: TMainForm
-  Left = 497
+  Left = 645
   Height = 672
-  Top = 235
+  Top = 171
   Width = 1010
   Caption = 'Анимация'
+  ClientHeight = 672
+  ClientWidth = 1010
   DesignTimePPI = 120
   Icon.Data = {
     3E42000000000100010040400000010020002842000016000000280000004000
@@ -542,6 +544,30 @@ object MainForm: TMainForm
   OnPaint = FormPaint
   OnResize = FormResize
   LCLVersion = '2.0.12.0'
+  object Label1: TLabel
+    Left = 491
+    Height = 20
+    Top = 544
+    Width = 44
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 491
+    Height = 20
+    Top = 576
+    Width = 44
+    Caption = 'Label2'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 491
+    Height = 20
+    Top = 608
+    Width = 44
+    Caption = 'Label3'
+    ParentColor = False
+  end
   object Timer1: TTimer
     Interval = 10
     OnTimer = Timer1Timer

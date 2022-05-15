@@ -38,104 +38,181 @@ const
     (0.30, 0)
     );
 
-  ClPCount = 9;
+  CloudHeight = 150;
   CloudSize = 40;
-  {CloudPoints: array [0..ClPCount - 1] of TPoint = (
-
-  );}
 
 
 type
 
-
   { TCloud }
 
-  {  TCloud = class
-    private
-        FCenter: TPoint;
-        FAbsPoints: TPointArr;
-        FForwardV: TVector2D;
-        procedure SetForwardV(AValue: TVector2D);
+    TCloud = record
+        x, y: integer;
+        nForward: TVector2D;
+        Points: TPointArr;
+        Active: boolean;
     public
-        constructor Create(Center: TPoint; RelPoints: TPointArr);
         procedure Move();
-        property ForwardV: TVector2D read FForwardV write SetForwardV;
+        procedure Reset();
     end;
 
+    TCloudArr = array of TCloud;
 
+    //function ResetCloud(): TCloud;
+    procedure DrawCloud(Canvas: TCanvas; cloud: TCloud);
+    procedure InitClouds(var Clouds: TCloudArr);
+    //function CalcFarMountains(screenW, screenH: integer): TPointArr;
+    procedure MoveClouds(var Clouds: TCloudArr; screenW: integer);
+    procedure trySpawnCloud(var Clouds: TCloudArr);
 
 implementation
 
-{ TCloud }
-
-procedure TCloud.SetForwardV(AValue: TVector2D);
-begin
-    if FForwardV=AValue then Exit;
-    FForwardV:=AValue;
-end;
-
-constructor TCloud.Create(Center: TPoint; RelPoints: TPointArr);
+function GenerateCloudPoints(): TPointArr;
 var
-    pcount: integer;
+    rbeta, rad: double;
+    pcount, beta, i: integer;
 begin
-    inherited;
+    pcount := random(3) + 4;
+    beta := 0;
+    Setlength(Result, pcount);
+    for i := 0 to pcount - 1 do
+    begin
+        beta := beta + 360 div pcount;
+        rbeta := beta * deg;
+        rad :=  random(CloudSize);
+        Result[i] := TPoint.Create(Round(cos(rbeta) * rad), Round(sin(rbeta) * rad));
+    end;
 end;
 
-procedure TCloud.Move();
-begin
-
-end;
- }
-
-  { TCloud }
-
-  TCloud = record
-    x, y: integer;
-    nForward: TVector2D;
-    Points: TPointArr;
-  public
-    procedure Move();
-  end;
-
-   function GenerateCloud(screenW, screenH: longint): TCloud;
-
-implementation
-
-{ TCloud }
-
-procedure TCloud.Move();
-begin
-
-end;
-
-function GenerateCloud(screenW, screenH: longint): TCloud;
+{function ResetCloud(): TCloud;
 var
     cloud: TCloud;
-    pcount, alpha, beta, i: integer;
-    ralpha, rbeta, rad: double;
 begin
     with cloud do
     begin
-        //x := random(screenW);
-        //y := random(screenH);
-        x := screenW div 2;
-        y := screenH div 2;
-        pcount := random(3) + 4;
-        beta := 0;
-        Setlength(Points, pcount);
-        for i := 0 to pcount - 1 do
-        begin
-            beta := beta + 360 div pcount;
-            rbeta := beta * deg;
-            rad :=  random(CloudSize);
-            Points[i] := TPoint.Create(Round(x + cos(rbeta) * rad), Round(y + sin(rbeta) * rad));
-        end;
-        alpha := random(360);
-        ralpha := alpha * deg;
+        x := -2 * CloudSize;
+        y := 200;
+        Points := GenerateCloudPoints();
         nForward.x := 1;
         nForward.y := 0;
+        Active := false;
     end;
     Result := cloud;
+end;}
+
+procedure DrawCloud(Canvas: TCanvas; cloud: TCloud);
+var
+    i: integer;
+    buf: TPoint;
+begin
+    for i := 0 to Length(cloud.Points) - 1 do
+    begin
+        buf := cloud.Points[i];
+        DrawCircle(Canvas, cloud.x + buf.X, cloud.y + buf.Y, CloudSize);
+    end;
+end;
+
+{function CalcFarMountains(screenW, screenH: integer): TPointArr;
+var
+    bx, by, i: integer;
+begin
+    for i := 0 to FarMtCount + 1 do
+    begin
+        if i = 0 then
+            bx := -1 // Чтобы убрать левую вершину за границу экрана
+        else if i = FarMtCount + 1 then
+            bx := screenW + 1 // Чтобы убрать правую вершину за границу экрана
+        else
+            bx := Trunc(FarMtRatios[i, 0] * screenW);
+        by := Trunc(screenH - FarMtRatios[i, 1] * maxMtHeight);
+        Result[i] := TPoint.Create(bx, by);
+    end;
+end;}
+
+{function CalcNearMountains(screenW, screenH: integer): TPointArr;
+var
+    bx, by, i: integer;
+begin
+    for i := 0 to LMtPointsCount + 1 do
+    begin
+        if i = LMtPointsCount + 1 then
+        begin
+            by := screenH + 1; // Чтобы убрать правую вершину за границу экрана
+        end
+        else
+            by := Trunc(screenH - LMtRatios[i, 1] * maxMtHeight);
+        if i = 0 then
+            bx := -1 // Чтобы убрать левую вершину за границу экрана
+        else
+            bx := Trunc(LMtRatios[i, 0] * screenW);
+        Result[i] := TPoint.Create(bx, by);
+        RightMountain[i] := TPoint.Create(Width - bx, by);
+    end;
+end; }
+
+procedure InitClouds(var Clouds: TCloudArr);
+const
+    len = 3;
+var
+    i: integer;
+begin
+    SetLength(Clouds, len);
+    for i := 0 to len - 1 do
+    begin
+        Clouds[i].Reset();
+        Clouds[i].Active := false;
+        Clouds[i].x := Clouds[i].x - i * 100;
+    end;
+end;
+
+procedure MoveClouds(var Clouds: TCloudArr; screenW: integer);
+var
+    i: integer;
+begin
+    for i := 0 to Length(Clouds) - 1 do
+    begin
+        with Clouds[i] do
+        begin
+            if X > (screenW + 2 * CloudSize) then
+                Active := false;
+            if Active then Move();
+        end;
+    end;
+end;
+
+procedure trySpawnCloud(var Clouds: TCloudArr);
+var
+    num, i: integer;
+begin
+    num := random(150);
+    if num = 0 then
+    for i := 0 to Length(Clouds) - 1 do
+    with Clouds[i] do
+    begin
+        if not Active then
+        begin
+            Reset;
+            Break;
+        end;
+    end;
+end;
+
+{ TCloud }
+
+procedure TCloud.Move();
+begin
+    inc(X, nForward.X);
+    inc(Y, nForward.Y);
+end;
+
+procedure TCloud.Reset();
+begin
+    x := -2 * CloudSize;
+    y := CloudHeight;
+    Points := GenerateCloudPoints();
+    nForward.x := 1;
+    nForward.y := 0;
+    Active := true;
 end;
 
 end.

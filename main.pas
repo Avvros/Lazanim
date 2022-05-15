@@ -6,13 +6,17 @@ unit main;
 interface
 
 uses
-    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ActnList;
+    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ActnList,
+    StdCtrls;
 
 type
 
     { TMainForm }
 
     TMainForm = class(TForm)
+        Label1: TLabel;
+        Label2: TLabel;
+        Label3: TLabel;
         Stop: TAction;
         ActionList1: TActionList;
         Timer1: TTimer;
@@ -22,8 +26,6 @@ type
         procedure DrawAtmosphere();
         procedure DrawBackground();
         procedure DrawForeground();
-        procedure DrawCloud();
-        procedure GenerateStars();
         procedure CalcFarMountains();
         procedure CalcNearMountains();
         procedure FormResize(Sender: TObject);
@@ -49,6 +51,7 @@ var
     FarMountains, LeftMountain, RightMountain: TPointArr;
     Stars: TPRatioArr;
     ExCloud: TCloud;
+    Clouds: array of TCloud;
 
 {$R *.lfm}
 
@@ -74,23 +77,6 @@ begin
     DrawSolidPolylineObject(Canvas, FarMountains, clFarMt, ffs);
 end;
 
-function CalcCloud(cloud: TCloud): TPointArr;
-var
-    APoints: TPointArr;
-    i, len: integer;
-begin
-    with cloud do
-    begin
-        len := Length(Points);
-        SetLength(APoints, len);
-        for i := 0 to len - 1 do
-        begin
-            APoints[i] := TPoint.Create(x + Points[i].x, y + Points[i].y);
-        end;
-    end;
-    Result := APoints;
-end;
-
 procedure TMainForm.DrawForeground();
 const
     clLtLtGray = TColor($E0E0E0);
@@ -111,16 +97,8 @@ begin
     //Canvas.PolyBezier(ExCloud.Points, true, true);
     Canvas.Brush.Color := clLtLtGray;
     Canvas.Pen.Color := clLtLtGray;
-    for i := 0 to Length(ExCloud.Points) do
-    begin
-        buf := ExCloud.Points[i];
-        DrawCircle(Canvas, buf.X, buf.Y, CloudSize);
-    end;
-end;
-
-procedure TMainForm.DrawCloud();
-begin
-
+    for i := 0 to Length(Clouds) - 1 do
+        DrawCloud(Canvas, Clouds[i]);
 end;
 
 procedure SetTime(time: double);
@@ -141,7 +119,7 @@ begin
     CalcNearMountains();
 end;
 
-procedure TMainForm.GenerateStars();
+procedure GenerateStars();
 var
     i: integer;
 begin
@@ -204,7 +182,7 @@ begin
     alpha := 0;
     sun_x := sun_x0;
     sun_y := sun_y0;
-    ExCloud := GenerateCloud(Width, Height);
+    InitClouds(Clouds);
 end;
 
 procedure TMainForm.DrawPic();
@@ -241,10 +219,14 @@ begin
     sun_x := Trunc(nvx) + px;
     sun_y := Trunc(nvy) + py;
     SetTime((sina + 1) / 2);
+    MoveClouds(Clouds, Width);
+    Label1.Caption := IntToStr(Clouds[0].x);
+    Label2.Caption := IntToStr(Clouds[1].x);
+    Label3.Caption := IntToStr(Clouds[2].x);
+    trySpawnCloud(Clouds);
     Repaint;  // Заменил DrawPic на Repaint, т.к иначе картинка очень сильно мерцает
     sun_x := sun_x0;
     sun_y := sun_y0;
-
 end;
 
 procedure TMainForm.FormPaint(Sender: TObject);
