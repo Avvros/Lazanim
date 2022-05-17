@@ -51,6 +51,9 @@ const
   CloudHeight = 150;
   CloudSize = 40;
 
+  BridgeH = 130;
+  BridgeT = 8;
+
 
 type
 

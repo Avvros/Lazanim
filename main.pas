@@ -29,6 +29,8 @@ type
         procedure CalcFarMountains();
         procedure CalcNearMountains();
         procedure DrawSpruces();
+        procedure DrawBridge();
+        procedure DrawTrain();
         procedure FormResize(Sender: TObject);
         procedure StopExecute(Sender: TObject);
         procedure Timer1Timer(Sender: TObject);
@@ -91,6 +93,8 @@ begin
     moon_y := 2 * Height - sun_y;
     Canvas.Brush.Color := clMoon;
     DrawCircle(Canvas, moon_x, moon_y, Rc);
+    DrawBridge();
+    DrawTrain();
     ffs := TPoint.Create(10, Height - 10);
     DrawSolidPolylineObject(Canvas, LeftMountain, clNearMt, ffs);
     ffs := TPoint.Create(Width - 10, Height - 10);
@@ -146,6 +150,56 @@ begin
                     Round(Height - SpRatios[i, 1] * MaxMtHeight),
                     Round(dl * spdx));
     end;
+end;
+
+procedure TMainForm.DrawBridge();
+const
+    clBridge = TColor($87B8DE);
+    //clBridge = TColor($3F85CD);
+var
+    i, p: integer;
+begin
+    Canvas.Pen.Color := clBridge;
+    Canvas.Pen.Width := BridgeT;
+    Canvas.Line(Width div 4, Height - BridgeH, Width div 4 * 3, Height - BridgeH);
+    for i := 1 to 4 do
+    begin
+        p := Width div 4 + Width div 10 * i;
+        Canvas.Line(p, Height, p, Height - BridgeH);
+    end;
+end;
+
+procedure TMainForm.DrawTrain();
+const
+    wr = 10; // Wheel radius
+var
+    wh, tl, tr, tt, nt, nb, px: integer;
+begin
+    Canvas.Pen.Width := 1;
+    Canvas.Pen.Color := clMedGray;
+    Canvas.Brush.Color := clMedGray;
+    wh := Height - BridgeH - BridgeT div 2 - wr; // Wheel height
+    DrawCircle(Canvas, Width div 2, wh, wr);
+    DrawCircle(Canvas, Width div 2 + 2 * wr, wh, wr);
+    DrawCircle(Canvas, Width div 2 + 8 * wr, wh, wr);
+    tl := Width div 2 - wr; // Train left
+    tr := Width div 2 + 9 * wr; //Train right
+    tt := wh - 3 * wr; // Train top
+    Canvas.Rectangle(tl, tt, tr, wh); // Корпус (от левого верхнего угла, до правого нижнего)
+    Canvas.Rectangle(tl, tt, tl + 3 * wr, tt - 2 * wr); // Верхняя часть кабины
+    nt := wh - wr; // Nose top
+    //ns := wr div 2 * 3; // Nose side
+    nb := wh + wr div 2; // Nose bottom
+    Canvas.Polygon([Point(tr, nt),
+                    Point(tr, nb),
+                    Point(tr + nb - nt, nb)]); // Нос
+    px := tr - 2 * wr; // Pipe X
+    Canvas.Polygon([Point(px - 3, tt),
+                    Point(px - wr, tt - 2 * wr),
+                    Point(px - wr, tt - 5 * wr div 2),
+                    Point(px + wr, tt - 5 * wr div 2),
+                    Point(px + wr, tt - 2 * wr),
+                    Point(px + 3, tt)]);
 end;
 
 procedure TMainForm.CalcFarMountains();
