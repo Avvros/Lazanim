@@ -38,6 +38,16 @@ const
     (0.30, 0)
     );
 
+  SpCount = 6;
+  SpRatios: array [0..SpCount - 1] of TPointRatio = (
+    (0.05, 0.7),
+    (0.20, 0.6),
+    (0.12, 0.3),
+    (0.90, 0.7),
+    (0.75, 0.3),
+    (0.88, 0.2)
+  );
+
   CloudHeight = 150;
   CloudSize = 40;
 
@@ -64,6 +74,7 @@ type
     //function CalcFarMountains(screenW, screenH: integer): TPointArr;
     procedure MoveClouds(var Clouds: TCloudArr; screenW: integer);
     procedure trySpawnCloud(var Clouds: TCloudArr);
+    procedure DrawSpruce(Canvas: TCanvas; x, y: integer; wind: integer = 0);
 
 implementation
 
@@ -83,22 +94,6 @@ begin
         Result[i] := TPoint.Create(Round(cos(rbeta) * rad), Round(sin(rbeta) * rad));
     end;
 end;
-
-{function ResetCloud(): TCloud;
-var
-    cloud: TCloud;
-begin
-    with cloud do
-    begin
-        x := -2 * CloudSize;
-        y := 200;
-        Points := GenerateCloudPoints();
-        nForward.x := 1;
-        nForward.y := 0;
-        Active := false;
-    end;
-    Result := cloud;
-end;}
 
 procedure DrawCloud(Canvas: TCanvas; cloud: TCloud);
 var
@@ -194,6 +189,28 @@ begin
             Reset;
             Break;
         end;
+    end;
+end;
+
+procedure DrawSpruce(Canvas: TCanvas; x, y: integer; wind: integer);
+const
+    clWood = TColor($2D52A0);
+begin
+    with Canvas do
+    begin
+        Pen.Color := clWood;
+        Pen.Width := 7;
+        //Line(100, Height - 200, 100, Height - 150);
+        Line(x, y - 50, x, y);
+        Pen.Width := 1;
+        Pen.Color := clGreen;
+        Brush.Color := clGreen;
+        //Polygon([Point(70, Height - 175), Point(130, Height - 175), Point(100, Height - 200)]);
+        Polygon([Point(x - 30 + wind, y - 25), Point(x + 30 + wind, y - 25), Point(x, y - 50)]);
+        //Polygon([Point(75, Height - 190), Point(125, Height - 190), Point(100, Height - 220)]);
+        Polygon([Point(x - 25 + wind, y - 40), Point(x + 25 + wind, y - 40), Point(x, y - 70)]);
+        //Polygon([Point(80, Height - 210), Point(120, Height - 210), Point(100, Height - 250)]);
+        Polygon([Point(x - 20 + wind, y - 60), Point(x + 20 + wind, y - 60), Point(x, y - 100)]);
     end;
 end;
 

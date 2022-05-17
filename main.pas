@@ -28,6 +28,7 @@ type
         procedure DrawForeground();
         procedure CalcFarMountains();
         procedure CalcNearMountains();
+        procedure DrawSpruces();
         procedure FormResize(Sender: TObject);
         procedure StopExecute(Sender: TObject);
         procedure Timer1Timer(Sender: TObject);
@@ -46,11 +47,11 @@ uses drawing, calc, scene;
 
 var
     sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
-    alpha, speed: double;
+    alpha, speed, spdx: double;
     clAtmo: TColor;
     FarMountains, LeftMountain, RightMountain: TPointArr;
     Stars: TPRatioArr;
-    ExCloud: TCloud;
+   // ExCloud: TCloud;
     Clouds: array of TCloud;
 
 {$R *.lfm}
@@ -81,7 +82,7 @@ procedure TMainForm.DrawForeground();
 const
     clLtLtGray = TColor($E0E0E0);
 var
-    ffs, buf: TPoint; // FloodFill start
+    ffs: TPoint;
     moon_x, moon_y, i: integer;
 begin
     Canvas.Brush.Color := clSun;
@@ -94,11 +95,12 @@ begin
     DrawSolidPolylineObject(Canvas, LeftMountain, clNearMt, ffs);
     ffs := TPoint.Create(Width - 10, Height - 10);
     DrawSolidPolylineObject(Canvas, RightMountain, clNearMt, ffs);
-    //Canvas.PolyBezier(ExCloud.Points, true, true);
     Canvas.Brush.Color := clLtLtGray;
     Canvas.Pen.Color := clLtLtGray;
     for i := 0 to Length(Clouds) - 1 do
         DrawCloud(Canvas, Clouds[i]);
+    //DrawSpruce(Canvas, 100, Height - 150);
+    DrawSpruces();
 end;
 
 procedure SetTime(time: double);
@@ -128,6 +130,21 @@ begin
     begin
         Stars[i, 0] := random;
         Stars[i, 1] := random;
+    end;
+end;
+
+procedure TMainForm.DrawSpruces();
+const
+    dl = 5;
+var
+    i: integer;
+begin
+    for i := 0 to SpCount - 1 do
+    begin
+        DrawSpruce(Canvas,
+                    Round(SpRatios[i, 0] * Width),
+                    Round(Height - SpRatios[i, 1] * MaxMtHeight),
+                    Round(dl * spdx));
     end;
 end;
 
@@ -220,10 +237,11 @@ begin
     sun_y := Trunc(nvy) + py;
     SetTime((sina + 1) / 2);
     MoveClouds(Clouds, Width);
-    Label1.Caption := IntToStr(Clouds[0].x);
+    {Label1.Caption := IntToStr(Clouds[0].x);
     Label2.Caption := IntToStr(Clouds[1].x);
-    Label3.Caption := IntToStr(Clouds[2].x);
+    Label3.Caption := IntToStr(Clouds[2].x);}
     trySpawnCloud(Clouds);
+    spdx := sin(ralpha * 2);
     Repaint;  // Заменил DrawPic на Repaint, т.к иначе картинка очень сильно мерцает
     sun_x := sun_x0;
     sun_y := sun_y0;
