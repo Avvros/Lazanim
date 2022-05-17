@@ -6,7 +6,7 @@ unit main;
 interface
 
 uses
-    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ActnList,
+    Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, ActnList, Math,
     StdCtrls;
 
 type
@@ -48,8 +48,8 @@ implementation
 uses drawing, calc, scene;
 
 var
-    sun_x, sun_y, sun_y0, sun_x0, px, py: integer;
-    alpha, speed, spdx: double;
+    sun_x, sun_y, sun_y0, sun_x0, px, py, trainSg: integer;
+    alpha, speed, spdx, trainDx: double;
     clAtmo: TColor;
     FarMountains, LeftMountain, RightMountain: TPointArr;
     Stars: TPRatioArr;
@@ -173,27 +173,29 @@ procedure TMainForm.DrawTrain();
 const
     wr = 10; // Wheel radius
 var
-    wh, tl, tr, tt, nt, nb, px: integer;
+    swr, wh, tl, tr, tt, nt, nb, px, tx: integer;
 begin
+    swr := wr * trainSg;
+    tx := Round(Width div 2 * (1 + trainDx)); // Train X
     Canvas.Pen.Width := 1;
     Canvas.Pen.Color := clMedGray;
     Canvas.Brush.Color := clMedGray;
     wh := Height - BridgeH - BridgeT div 2 - wr; // Wheel height
-    DrawCircle(Canvas, Width div 2, wh, wr);
-    DrawCircle(Canvas, Width div 2 + 2 * wr, wh, wr);
-    DrawCircle(Canvas, Width div 2 + 8 * wr, wh, wr);
-    tl := Width div 2 - wr; // Train left
-    tr := Width div 2 + 9 * wr; //Train right
+    DrawCircle(Canvas, tx, wh, wr);
+    DrawCircle(Canvas, tx + 2 * swr, wh, wr);
+    DrawCircle(Canvas, tx + 8 * swr, wh, wr);
+    tl := tx - swr; // Train left
+    tr := tx + 9 * swr; //Train right
     tt := wh - 3 * wr; // Train top
     Canvas.Rectangle(tl, tt, tr, wh); // Корпус (от левого верхнего угла, до правого нижнего)
-    Canvas.Rectangle(tl, tt, tl + 3 * wr, tt - 2 * wr); // Верхняя часть кабины
+    Canvas.Rectangle(tl, tt, tl + 3 * swr, tt - 2 * wr); // Верхняя часть кабины
     nt := wh - wr; // Nose top
     //ns := wr div 2 * 3; // Nose side
     nb := wh + wr div 2; // Nose bottom
     Canvas.Polygon([Point(tr, nt),
                     Point(tr, nb),
-                    Point(tr + nb - nt, nb)]); // Нос
-    px := tr - 2 * wr; // Pipe X
+                    Point(tr + (nb - nt) * trainSg, nb)]); // Нос
+    px := tr - 2 * swr; // Pipe X
     Canvas.Polygon([Point(px - 3, tt),
                     Point(px - wr, tt - 2 * wr),
                     Point(px - wr, tt - 5 * wr div 2),
@@ -296,6 +298,8 @@ begin
     Label3.Caption := IntToStr(Clouds[2].x);}
     trySpawnCloud(Clouds);
     spdx := sin(ralpha * 2);
+    trainSg := sign(cosa);
+    trainDx := sina;
     Repaint;  // Заменил DrawPic на Repaint, т.к иначе картинка очень сильно мерцает
     sun_x := sun_x0;
     sun_y := sun_y0;
