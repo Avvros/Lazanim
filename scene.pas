@@ -28,14 +28,15 @@ const
     (1, 0.8)
     );
 
-  LMtPointsCount = 4;
+  LMtPointsCount = 5;
   LMtRatios: array [0..LMtPointsCount + 1] of TPointRatio = (
     (0, 0.8),
     (0.20, 0.9),
     (0.23, 0.85),
     (0.26, 0.7),
     (0.29, 0.4),
-    (0.30, 0)
+    (0.30, 0),
+    (0, 0)
     );
 
   SpCount = 6;

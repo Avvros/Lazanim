@@ -49,7 +49,7 @@ uses drawing, calc, scene;
 
 var
     sun_x, sun_y, sun_y0, sun_x0, px, py, trainSg: integer;
-    alpha, speed, spdx, trainDx: double;
+    alpha, speed, spdx, trainDx, trainCir: double;
     clAtmo: TColor;
     FarMountains, LeftMountain, RightMountain: TPointArr;
     Stars: TPRatioArr;
@@ -96,9 +96,14 @@ begin
     DrawBridge();
     DrawTrain();
     ffs := TPoint.Create(10, Height - 10);
-    DrawSolidPolylineObject(Canvas, LeftMountain, clNearMt, ffs);
+    //DrawSolidPolylineObject(Canvas, LeftMountain, clNearMt, ffs);
+    Canvas.Pen.Color := clNearMt;
+    Canvas.Brush.Color := clNearMt;
+    Canvas.Polygon(LeftMountain);
     ffs := TPoint.Create(Width - 10, Height - 10);
-    DrawSolidPolylineObject(Canvas, RightMountain, clNearMt, ffs);
+    //DrawSolidPolylineObject(Canvas, RightMountain, clNearMt, ffs);
+    //Canvas.Brush.Color := clNearMt;
+    Canvas.Polygon(RightMountain);
     Canvas.Brush.Color := clLtLtGray;
     Canvas.Pen.Color := clLtLtGray;
     for i := 0 to Length(Clouds) - 1 do
@@ -172,18 +177,32 @@ end;
 procedure TMainForm.DrawTrain();
 const
     wr = 10; // Wheel radius
+    clTrain = clMedGray;
+    clCorpus = TColor($3F3F3F);
 var
-    swr, wh, tl, tr, tt, nt, nb, px, tx: integer;
+    swr, wh, tl, tr, tt, nt, nb, px, tx, w2x, w3x, ndx, ndy: integer;
 begin
     swr := wr * trainSg;
     tx := Round(Width div 2 * (1 + trainDx)); // Train X
     Canvas.Pen.Width := 1;
-    Canvas.Pen.Color := clMedGray;
-    Canvas.Brush.Color := clMedGray;
+    Canvas.Pen.Color := clCorpus;
+    Canvas.Brush.Color := clTrain;
+    //Canvas.Brush.Style := bsClear;
     wh := Height - BridgeH - BridgeT div 2 - wr; // Wheel height
+    // Wheels
+    w2x := tx + 2 * swr; // Second wheel x
+    w3x := tx + 8 * swr; // Third wheel x
     DrawCircle(Canvas, tx, wh, wr);
-    DrawCircle(Canvas, tx + 2 * swr, wh, wr);
-    DrawCircle(Canvas, tx + 8 * swr, wh, wr);
+    DrawCircle(Canvas, w2x, wh, wr);
+    DrawCircle(Canvas, w3x, wh, wr);
+    //Canvas.Brush.Style := bsSolid;
+    ndx := Round(swr * cos(trainCir)); // wheel needle x
+    ndy := Round(swr * sin(trainCir)); // wheel needle y
+    Canvas.Line(tx, wh, tx + ndx, wh + ndy);
+    Canvas.Line(w2x, wh, w2x + ndx, wh + ndy);
+    Canvas.Line(w3x, wh, w3x + ndx, wh + ndy);
+    //Canvas.Pen.Color := clTrain;
+    // ----
     tl := tx - swr; // Train left
     tr := tx + 9 * swr; //Train right
     tt := wh - 3 * wr; // Train top
@@ -300,6 +319,7 @@ begin
     spdx := sin(ralpha * 2);
     trainSg := sign(cosa);
     trainDx := sina;
+    trainCir := ralpha * 10;
     Repaint;  // Заменил DrawPic на Repaint, т.к иначе картинка очень сильно мерцает
     sun_x := sun_x0;
     sun_y := sun_y0;
