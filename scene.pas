@@ -39,14 +39,18 @@ const
     (0, 0)
     );
 
-  SpCount = 6;
+  SpCount = 10;
   SpRatios: array [0..SpCount - 1] of TPointRatio = (
     (0.05, 0.7),
+    (0.10, 0.2),
+    (0.12, 0.4),
     (0.20, 0.6),
-    (0.12, 0.3),
-    (0.90, 0.7),
+    (0.25, 0.4),
     (0.75, 0.3),
-    (0.88, 0.2)
+    (0.80, 0.5),
+    (0.85, 0.1),
+    (0.88, 0.2),
+    (0.90, 0.7)
   );
 
   CloudHeight = 150;
@@ -64,6 +68,8 @@ type
         x, y: integer;
         nForward: TVector2D;
         Points: TPointArr;
+        FlyPhase, FlyAmpl: integer;
+        TrScale: double;
         Active: boolean;
     public
         procedure Move();
@@ -86,17 +92,19 @@ function GenerateCloudPoints(): TPointArr;
 var
     rbeta, rad: double;
     pcount, beta, i: integer;
+    res: TPointArr;
 begin
     pcount := random(3) + 4;
     beta := 0;
-    Setlength(Result, pcount);
+    Setlength(res, pcount);
     for i := 0 to pcount - 1 do
     begin
         beta := beta + 360 div pcount;
         rbeta := beta * deg;
         rad :=  random(CloudSize);
-        Result[i] := TPoint.Create(Round(cos(rbeta) * rad), Round(sin(rbeta) * rad));
+        res[i] := TPoint.Create(Round(cos(rbeta) * rad), Round(sin(rbeta) * rad));
     end;
+    Result := res;
 end;
 
 procedure DrawCloud(Canvas: TCanvas; cloud: TCloud);
@@ -223,7 +231,8 @@ end;
 procedure TCloud.Move();
 begin
     inc(X, nForward.X);
-    inc(Y, nForward.Y);
+    inc(FlyPhase);
+    Y := CloudHeight + Round(sin(FlyPhase / TrScale) * FlyAmpl);
 end;
 
 procedure TCloud.Reset();
@@ -231,6 +240,9 @@ begin
     x := -2 * CloudSize;
     y := CloudHeight;
     Points := GenerateCloudPoints();
+    FlyPhase := 0;
+    FlyAmpl := Random(21) + 30;
+    TrScale := 75 * (1 + random);
     nForward.x := 1;
     nForward.y := 0;
     Active := true;
